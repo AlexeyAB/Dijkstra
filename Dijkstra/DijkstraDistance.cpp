@@ -47,7 +47,7 @@ void DijkstraDistance::FillWallsMatrix( const size_t wallsNumber )
 // ----------------------------------------------------------------------------
 
 
-std::vector<std::pair<size_t, size_t> > DijkstraDistance::GetElementsTo( const std::pair<size_t, size_t> &position ) 
+std::vector<std::pair<size_t, size_t> > DijkstraDistance::GetElementsTo( const std::pair<size_t, size_t> &position ) const
 {
 	std::vector<std::pair<size_t, size_t> > elementsTo;
 	size_t x = position.first, y = position.second;

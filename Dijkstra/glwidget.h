@@ -11,19 +11,20 @@ class GLWidget : public QGLWidget
 {
 	Q_OBJECT
 
+	void initializeGL();
+	void paintGL();
+	void resizeGL(int w, int h);
+
+	void PaintQuad(size_t x, size_t y) const;
+	void PaintCube(size_t x, size_t y) const;
+
+	void ShowWalls() const;
+	void ShowPath(const std::pair<size_t, size_t> endPosition = std::make_pair(MATRIX_SIZE-1, MATRIX_SIZE-1)) const;
 public:
 	GLWidget(QWidget *parent = 0);
 	~GLWidget();
 
-	void ShowWalls();
-	void ShowPath(const std::pair<size_t, size_t> endPosition = std::make_pair(MATRIX_SIZE-1, MATRIX_SIZE-1));
-	void PaintQuad(size_t x, size_t y);
-
-	void initializeGL();
-	void paintGL();
-	void resizeGL(int w, int h);
-	
-	enum { MATRIX_SIZE = DijkstraDistance::MATRIX_SIZE };
+	static const size_t MATRIX_SIZE = DijkstraDistance::MATRIX_SIZE;
 private:
 	Ui::GLWidget ui;
 	size_t mWallsNumber;

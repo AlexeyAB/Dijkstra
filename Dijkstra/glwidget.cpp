@@ -2,7 +2,6 @@
 #include "glwidget.h"
 #include<QMessageBox>
 
-
 GLWidget::GLWidget(QWidget *parent)
 	: QGLWidget(parent), mWallsNumber(0)
 {
@@ -27,7 +26,7 @@ void GLWidget::GenerateWalls()
 }
 
 
-void GLWidget::FindPath() 
+void GLWidget::FindPath()
 {
 	if(!mCalcDistance.DijkstraFindPath()) 
 	{
@@ -40,24 +39,24 @@ void GLWidget::FindPath()
 }
 
 
-void GLWidget::ShowWalls() 
+void GLWidget::ShowWalls() const
 {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glColor3f(0, 0, 1);
+	glEnable(GL_POLYGON_OFFSET_FILL);
 
 	for(size_t x = 0; x < MATRIX_SIZE; ++x) 
 	{
-		for(size_t y = 0; y < MATRIX_SIZE; ++y) 
+		for(size_t y = 1; y <= MATRIX_SIZE; ++y) 
 		{
-			if(mCalcDistance.mWallsMatrix[x][y]) 
+			if(mCalcDistance.mWallsMatrix[x][MATRIX_SIZE - y]) 
 			{
-				PaintQuad(x, y);
+				PaintCube(x, MATRIX_SIZE - y);
 			}
 		}
 	}
 }
 
-void GLWidget::ShowPath(const std::pair<size_t, size_t> endPosition) 
+void GLWidget::ShowPath(const std::pair<size_t, size_t> endPosition) const
 {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glColor3f(0, 1, 1);
@@ -72,7 +71,8 @@ void GLWidget::ShowPath(const std::pair<size_t, size_t> endPosition)
 	}
 }
 
-void GLWidget::PaintQuad(size_t x, size_t y) 
+
+void GLWidget::PaintQuad(size_t x, size_t y) const
 {
 	glBegin(GL_QUADS);
 		glVertex2f(x*2.0f / MATRIX_SIZE, (y+1)*2.0f / MATRIX_SIZE);			// left-top
@@ -83,16 +83,81 @@ void GLWidget::PaintQuad(size_t x, size_t y)
 }
 
 
+void GLWidget::PaintCube(size_t x, size_t y) const
+{
+	float x_low = x*2.0f / MATRIX_SIZE;
+	float x_high = (x+1)*2.0f / MATRIX_SIZE;
+
+	float y_low = y*2.0f / MATRIX_SIZE;
+	float y_high = (y+1)*2.0f / MATRIX_SIZE;
+
+	float z_low = 0.0f;
+	float z_high = -1.0f/ MATRIX_SIZE;
+
+	glBegin(GL_QUADS);
+
+	glColor3f(1.0f,1.0f,1.0f);		// white
+		glVertex3f(x_high, y_low, z_low);    
+		glVertex3f(x_low, y_low, z_low);     
+		glVertex3f(x_low, y_high, z_low);    
+		glVertex3f(x_high, y_high, z_low);   
+
+	glColor3f(0.0f,0.0f,1.0f);      // Blue
+		glVertex3f(x_low, y_high, z_high);       
+		glVertex3f(x_low, y_high, z_low);        
+		glVertex3f(x_low, y_low, z_low);         
+		glVertex3f(x_low, y_low, z_high);        
+
+	glColor3f(1.0f,0.5f,0.0f);    // Orange
+		glVertex3f(x_high, y_low, z_high);       
+		glVertex3f(x_low, y_low, z_high);        
+		glVertex3f(x_low, y_low, z_low);         
+		glVertex3f(x_high, y_low, z_low);        
+		
+
+	glColor3f(1.0f,0.0f,0.0f);  // Red
+		glVertex3f(x_high, y_high, z_high);      
+		glVertex3f(x_low, y_high, z_high);       
+		glVertex3f(x_low, y_low, z_high);        
+		glVertex3f(x_high, y_low, z_high);       
+
+
+	glColor3f(1.0f,0.0f,1.0f);  // Purple
+		glVertex3f(x_high, y_high, z_low);       
+		glVertex3f(x_high, y_high, z_high);      
+		glVertex3f(x_high, y_low, z_high);       
+		glVertex3f(x_high, y_low, z_low);        
+
+	glEnd();                         
+
+}
+
+
 void GLWidget::initializeGL() 
 {
+  glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glTranslatef(-1.0f, -1.0f, 0.0f);
-	glClearColor(1, 1, 0, 1);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable (GL_NORMALIZE);
 	//glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity(); 
+	glOrtho(-1.2f, 1.2f, -1.2f, 1.2f, -1.2f, 1.2f);
+
+	glTranslatef(-1.0f, -1.0f, 0.0f);
+	qglClearColor(Qt::yellow);	
+
+	glRotated(45, 1, 1, 0);
 }
 
 
 void GLWidget::paintGL() {
+
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -122,6 +187,7 @@ void GLWidget::paintGL() {
 
 void GLWidget::resizeGL(int w, int h) 
 {
+	glMatrixMode(GL_PROJECTION);
 	glViewport(0, 0, static_cast<GLint>(w), static_cast<GLint>(h));
 
 }
